@@ -1,2 +1,1 @@
-# adxl345
-ADXL345 Device Driver
+# ADXL345 Accelerometer Sensor Driver
