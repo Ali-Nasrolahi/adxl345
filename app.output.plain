@@ -1,14 +1,3 @@
-# ADXL345 Accelerometer Sensor Driver
-
-- Built for and tested with `BeagleBone Black` board image, built by `buildroot`'s beaglebone black defconfig.
-- There's also device-tree overlay (`BB-SPI0-ADXL345-00A0.dts`)to enable the driver.
-- Check <https://github.com/beagleboard/bb.org-overlays/tree/master> for other overlays
-- `app.c` is a simple C program to showcase the driver usage, `cat(1)` the `app.output` for colorful example output.
-- Driver support `sysfs` attributes, `ioctl` and simple `cdev`(character device) implementation for easier readings.
-
-Following is example of `app.c` output using the driver:
-
-```plaintext
 ADXL345 Driver Test Application
 Usage: This application tests all functionality of the ADXL345 driver
 It performs the following tests:
@@ -85,4 +74,3 @@ Testing attribute: z
   (Read-only attribute)
 Test completed successfully
 [00:34:39] All tests completed
-```
