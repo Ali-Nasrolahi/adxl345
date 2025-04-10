@@ -1,0 +1,85 @@
+
+[33mADXL345 Driver Test Application[0m
+Usage: This application tests all functionality of the ADXL345 driver
+It performs the following tests:
+  1. IOCTL interface testing (enable/disable, rate/range settings)
+  2. Acceleration data reading
+  3. Sysfs attribute interface testing
+
+[[34m00:34:38[0m] [34mStarting ADXL345 driver tests[0m
+[[32m00:34:38[0m] [32mDevice opened successfully[0m
+
+[33m=== IOCTL FUNCTIONALITY TEST ===[0m
+[[32m00:34:38[0m] [32mDevice enabled[0m
+[[32m00:34:38[0m] [32mDevice disabled[0m
+[[36m00:34:38[0m] [36mCurrent data rate: [35m12[0m
+[[36m00:34:38[0m] [36mData rate set to: [35m7[0m
+[[32m00:34:38[0m] [32mRate setting verified[0m
+[[36m00:34:38[0m] [36mData rate set to: [35m8[0m
+[[32m00:34:38[0m] [32mRate setting verified[0m
+[[36m00:34:38[0m] [36mData rate set to: [35m9[0m
+[[32m00:34:38[0m] [32mRate setting verified[0m
+[[36m00:34:38[0m] [36mData rate set to: [35m10[0m
+[[32m00:34:38[0m] [32mRate setting verified[0m
+[[36m00:34:38[0m] [36mData rate set to: [35m11[0m
+[[32m00:34:38[0m] [32mRate setting verified[0m
+[[36m00:34:38[0m] [36mData rate set to: [35m12[0m
+[[32m00:34:38[0m] [32mRate setting verified[0m
+[[36m00:34:38[0m] [36mCurrent measurement range: [35m3[0m
+[[36m00:34:38[0m] [36mRange set to: [35m0[0m
+[[32m00:34:38[0m] [32mRange setting verified[0m
+[[36m00:34:38[0m] [36mRange set to: [35m1[0m
+[[32m00:34:38[0m] [32mRange setting verified[0m
+[[36m00:34:38[0m] [36mRange set to: [35m2[0m
+[[32m00:34:38[0m] [32mRange setting verified[0m
+[[36m00:34:38[0m] [36mRange set to: [35m3[0m
+[[32m00:34:38[0m] [32mRange setting verified[0m
+[32mTest completed successfully[0m
+
+[33m=== ACCELERATION READING TEST ===[0m
+[[34m00:34:38[0m] [34mReading acceleration data...[0m
+[36mSample 1: X=45     Y=-247   Z=43    [0m
+[36mSample 2: X=46     Y=-249   Z=47    [0m
+[36mSample 3: X=44     Y=-244   Z=44    [0m
+[36mSample 4: X=45     Y=-246   Z=44    [0m
+[36mSample 5: X=46     Y=-250   Z=43    [0m
+[32mTest completed successfully[0m
+[[32m00:34:39[0m] [32mDevice closed successfully[0m
+
+[33m=== SYSFS INTERFACE TEST ===[0m
+
+Testing attribute: [33mrange[0m
+  Current value: [36m3
+[0m  Set to [32m0[0m: Readback [32m0
+[0m
+  Set to [32m1[0m: Readback [32m1
+[0m
+  Set to [32m2[0m: Readback [32m2
+[0m
+  Set to [32m3[0m: Readback [32m3
+[0m
+
+Testing attribute: [33mrate[0m
+  Current value: [36m12
+[0m  Set to [32m9[0m: Readback [32m9
+[0m
+  Set to [32m10[0m: Readback [32m10
+[0m
+  Set to [32m11[0m: Readback [32m11
+[0m
+  Set to [32m12[0m: Readback [32m12
+[0m
+
+Testing attribute: [33mx[0m
+  Current value: [36m46
+[0m  (Read-only attribute)
+
+Testing attribute: [33my[0m
+  Current value: [36m-251
+[0m  (Read-only attribute)
+
+Testing attribute: [33mz[0m
+  Current value: [36m44
+[0m  (Read-only attribute)
+[32mTest completed successfully[0m
+[[34m00:34:39[0m] [34mAll tests completed[0m

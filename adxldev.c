@@ -58,7 +58,6 @@ static ssize_t adxl_read(struct file *file, char __user *ubuf, size_t len,
 	if (copy_to_user(ubuf, kbuf + *offset, len))
 		return kfree(kbuf), -EFAULT;
 
-	*offset += len;
 	kfree(kbuf);
 	return len;
 }
@@ -135,13 +134,15 @@ static struct file_operations adxl_fops = {
 static ssize_t enable_store(struct device *dev, struct device_attribute *attr,
 			    const char *buf, size_t count)
 {
-	return adxl345_enable(dev_get_drvdata(dev));
+	int ret = adxl345_enable(dev_get_drvdata(dev));
+	return ret < 0 ? ret : count;
 }
 
 static ssize_t disable_store(struct device *dev, struct device_attribute *attr,
 			     const char *buf, size_t count)
 {
-	return adxl345_disable(dev_get_drvdata(dev));
+	int ret = adxl345_disable(dev_get_drvdata(dev));
+	return ret < 0 ? ret : count;
 }
 
 static ssize_t rate_show(struct device *dev, struct device_attribute *attr,

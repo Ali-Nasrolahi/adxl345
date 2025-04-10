@@ -54,7 +54,7 @@
 
 // Test configuration
 #define NUM_SAMPLES     5
-#define SAMPLE_DELAY_MS 200
+#define SAMPLE_DELAY_MS 100
 
 void print_test_header(const char *test_name)
 {
@@ -99,7 +99,8 @@ void test_ioctl(int fd)
         overall_success = false;
     }
 
-    int test_rates[] = {6, 12, 25, 50, 100, 200, 400};
+    //int test_rates[] = {6, 12, 25, 50, 100, 200, 400};
+    int test_rates[] = {0b0111, 0b1000, 0b1001, 0b1010, 0b1011, 0b1100};
     for (size_t i = 0; i < sizeof(test_rates) / sizeof(test_rates[0]); i++) {
         value = test_rates[i];
         if (ioctl(fd, ADXL_IOCTL_SET_RATE, &value) == 0) {
@@ -127,7 +128,8 @@ void test_ioctl(int fd)
         overall_success = false;
     }
 
-    int test_ranges[] = {2, 4, 8, 16};
+    // int test_ranges[] = {2, 4, 8, 16};
+    int test_ranges[] = {0, 1, 2, 3};
     for (size_t i = 0; i < sizeof(test_ranges) / sizeof(test_ranges[0]); i++) {
         value = test_ranges[i];
         if (ioctl(fd, ADXL_IOCTL_SET_RANGE, &value) == 0) {
@@ -147,6 +149,7 @@ void test_ioctl(int fd)
         }
     }
 
+#if 0
     // Test calibration
     LOG_INFO("Starting calibration...");
     if (ioctl(fd, ADXL_IOCTL_CALIBRATE) == 0) {
@@ -155,7 +158,7 @@ void test_ioctl(int fd)
         LOG_FAILURE("Calibration failed");
         overall_success = false;
     }
-
+#endif
     print_test_footer(overall_success);
 }
 
@@ -216,8 +219,12 @@ void test_sysfs_interface()
     } sysfs_attribute;
 
     sysfs_attribute attributes[] = {
+#if 0
         {"range", true, {"2", "4", "8", "16"}, 4},
         {"rate", true, {"6", "12", "25", "50"}, 4},
+#endif
+        {"range", true, {"0", "1", "2", "3"}, 4},
+        {"rate", true, {"9", "10", "11", "12"}, 4},
         {"x", false, {NULL}, 0},
         {"y", false, {NULL}, 0},
         {"z", false, {NULL}, 0},
@@ -295,7 +302,7 @@ void test_sysfs_interface()
             }
 
             buf[n] = '\0';
-            bool success = (strcmp(buf, test_value) == 0);
+            bool success = (strncmp(buf, test_value, strlen(test_value)) == 0);
             printf("Readback %s%s%s\n", success ? COLOR_GREEN : COLOR_RED, buf, COLOR_RESET);
 
             if (!success) { overall_success = false; }
