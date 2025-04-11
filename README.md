@@ -5,6 +5,7 @@
 - Check <https://github.com/beagleboard/bb.org-overlays/tree/master> for other overlays
 - `app.c` is a simple C program to showcase the driver usage, `cat(1)` the `app.output` for colorful example output.
 - Driver support `sysfs` attributes, `ioctl` and simple `cdev`(character device) implementation for easier readings.
+- Check [Ali-Nasrolahi/portfolio/adxl345-driver/](https://ali-nasrolahi.github.io/portfolio/adxl345-driver/) on my website for further details.
 
 Following is example of `app.c` output using the driver:
 
