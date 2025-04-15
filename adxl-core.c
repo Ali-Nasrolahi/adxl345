@@ -1,112 +1,81 @@
 #include "adxl.h"
 
-#define ADXL345_SPI_READ_SINGLE(reg) ((reg) | 0x80)
-#define ADXL345_SPI_READ_MULTI(reg) ((reg) | 0xC0)
-#define ADXL345_SPI_WRITE_SINGLE(reg) ((reg) & 0x3F)
-#define ADXL345_SPI_WRITE_MULTI(reg) ((reg) | 0x40)
-
-static int adxl345_read_reg8(struct adxl_device *adxl, u8 reg)
-{
-	return spi_w8r8(adxl->spidev, ADXL345_SPI_READ_SINGLE(reg));
-}
-
-static int adxl345_read_reg16(struct adxl_device *adxl, u8 reg)
-{
-	int ret;
-	u8 rx[2];
-	reg = ADXL345_SPI_READ_MULTI(reg);
-	if ((ret = spi_write_then_read(adxl->spidev, &reg, 1, rx, 2)) < 0)
-		return dev_err(&adxl->spidev->dev,
-			       "failed to read a register!"),
-		       ret;
-
-	return (u16)((rx[1] << 8) | rx[0]);
-}
-
-static int adxl345_write_reg8(struct adxl_device *adxl, u8 reg, u8 val)
-{
-	u8 buf[2] = { ADXL345_SPI_WRITE_SINGLE(reg), val };
-	return spi_write(adxl->spidev, buf, sizeof(buf));
-}
-
-static int adxl345_update_reg(struct adxl_device *adxl, u8 reg, u8 mask, u8 val)
-{
-	int ret;
-	u8 tmp, orig;
-	if ((ret = adxl345_read_reg8(adxl, reg)) < 0)
-		return ret;
-	orig = (u8)ret;
-	tmp = orig & ~mask;
-	tmp |= val & mask;
-	return adxl345_write_reg8(adxl, reg, tmp);
-}
+static const struct regmap_config regmap_spi_config = {
+	.reg_bits = 8,
+	.val_bits = 8,
+	.read_flag_mask = (BIT(7) | BIT(6)), /* Enable multi-byte read */
+};
 
 int adxl345_enable(struct adxl_device *adxl)
 {
-	return adxl345_write_reg8(adxl, ADXL345_REG_POWER_CTL,
-				  ADXL345_POWER_CTL_MEASURE);
+	return regmap_write(adxl->regmap, ADXL345_REG_POWER_CTL,
+			    ADXL345_POWER_CTL_MEASURE);
 }
 
 int adxl345_disable(struct adxl_device *adxl)
 {
-	return adxl345_write_reg8(adxl, ADXL345_REG_POWER_CTL,
-				  ADXL345_POWER_CTL_STANDBY);
+	return regmap_write(adxl->regmap, ADXL345_REG_POWER_CTL,
+			    ADXL345_POWER_CTL_STANDBY);
 }
 
 int adxl345_read_range(struct adxl_device *adxl)
 {
-	int ret = adxl345_read_reg8(adxl, ADXL345_REG_DATA_FORMAT);
-	return ret < 0 ? ret :
-			 (adxl->measurement_range =
-				  ADXL345_DATA_FORMAT_RANGE & ret);
+	int ret, val;
+	if ((ret = regmap_read(adxl->regmap, ADXL345_REG_DATA_FORMAT, &val)))
+		return ret;
+	adxl->measurement_range = ADXL345_DATA_FORMAT_RANGE & val;
+	return 0;
 }
 
 int adxl345_write_range(struct adxl_device *adxl, u8 range)
 {
-	int ret = adxl345_update_reg(adxl, ADXL345_REG_DATA_FORMAT,
+	int ret = regmap_update_bits(adxl->regmap, ADXL345_REG_DATA_FORMAT,
 				     ADXL345_DATA_FORMAT_RANGE, range);
 	return ret < 0 ? ret :
-			 (adxl->measurement_range =
-				  ADXL345_DATA_FORMAT_RANGE & range);
+			 (adxl->measurement_range = ADXL345_DATA_FORMAT_RANGE &
+						    range);
 }
 
 int adxl345_read_rate(struct adxl_device *adxl)
 {
-	int ret = adxl345_read_reg8(adxl, ADXL345_REG_BW_RATE);
-	return ret < 0 ? ret : (adxl->sample_rate = ADXL345_BW_RATE & ret);
+	int ret, val;
+	if ((ret = regmap_read(adxl->regmap, ADXL345_REG_BW_RATE, &val)))
+		return ret;
+	adxl->sample_rate = ADXL345_BW_RATE & val;
+	return 0;
 }
 
 int adxl345_write_rate(struct adxl_device *adxl, u8 rate)
 {
-	int ret = adxl345_update_reg(adxl, ADXL345_REG_BW_RATE, ADXL345_BW_RATE,
-				     rate);
-	return ret < 0 ? ret : (adxl->sample_rate = ADXL345_BW_RATE & rate);
+	int ret = regmap_update_bits(adxl->regmap, ADXL345_REG_BW_RATE,
+				     ADXL345_BW_RATE, rate);
+	return ret < 0 ? ret : (adxl->sample_rate = ADXL345_REG_BW_RATE & rate);
 }
 
 int adxl345_read_x(struct adxl_device *adxl)
 {
-	int ret;
-	if ((ret = adxl345_read_reg16(adxl, ADXL345_REG_DATAX0)) < 0)
+	int ret = regmap_bulk_read(adxl->regmap, ADXL345_REG_DATAX0,
+				   (s16 *)&adxl->x, 2);
+	if (ret < 0)
 		return ret;
-	adxl->x = (s16)ret;
 	return 0;
 }
 
 int adxl345_read_y(struct adxl_device *adxl)
 {
-	int ret;
-	if ((ret = adxl345_read_reg16(adxl, ADXL345_REG_DATAY0)) < 0)
+	int ret = regmap_bulk_read(adxl->regmap, ADXL345_REG_DATAY0,
+				   (s16 *)&adxl->y, 2);
+	if (ret < 0)
 		return ret;
-	adxl->y = (s16)ret;
 	return 0;
 }
 
 int adxl345_read_z(struct adxl_device *adxl)
 {
-	int ret;
-	if ((ret = adxl345_read_reg16(adxl, ADXL345_REG_DATAZ0)) < 0)
+	int ret = regmap_bulk_read(adxl->regmap, ADXL345_REG_DATAZ0,
+				   (s16 *)&adxl->z, 2);
+	if (ret < 0)
 		return ret;
-	adxl->z = (s16)ret;
 	return 0;
 }
 
@@ -114,8 +83,8 @@ int adxl345_update_axis(struct adxl_device *adxl)
 {
 	int ret;
 	u8 xyz_val[6];
-	u8 reg = ADXL345_SPI_READ_MULTI(ADXL345_REG_DATAX0);
-	if ((ret = spi_write_then_read(adxl->spidev, &reg, 1, xyz_val, 6))) {
+	if ((ret = regmap_bulk_read(adxl->regmap, ADXL345_REG_DATAX0, xyz_val,
+				    sizeof(xyz_val)))) {
 		dev_dbg(&adxl->spidev->dev, "Failed to update axis\n");
 		return ret;
 	}
@@ -132,14 +101,27 @@ int adxl345_probe(struct adxl_device *adxl)
 	struct spi_device *spidev = adxl->spidev;
 	struct device *dev = &spidev->dev;
 	int ret;
+	u32 regval;
+
+	// 0. Regmap init
+	adxl->regmap = devm_regmap_init_spi(spidev, &regmap_spi_config);
+	if (IS_ERR(adxl->regmap))
+		return dev_err_probe(dev, PTR_ERR(adxl->regmap),
+				     "Failed to initialize regmap\n");
 
 	// 1. Check if ADXL is actually there!?
-	if (adxl345_read_reg8(adxl, ADXL345_REG_DEVID) != ADXL345_DEVID)
-		return dev_err_probe(dev, -EINVAL, "Invalid DEVID received\n");
+	if ((ret = regmap_read(adxl->regmap, ADXL345_REG_DEVID, &regval)) < 0)
+		return dev_err_probe(dev, ret, "Failed to read DEVID\n");
+
+	if (regval != ADXL345_DEVID)
+		return dev_err_probe(
+			dev, -EINVAL,
+			"Invalid DEVID, received 0x%x, expected 0x%x\n", regval,
+			ADXL345_DEVID);
 
 	// 2. Set data format
-	if ((ret = adxl345_write_reg8(adxl, ADXL345_REG_DATA_FORMAT,
-				      ADXL345_DATA_FORMAT_FULL_RES)))
+	if ((ret = regmap_write(adxl->regmap, ADXL345_REG_DATA_FORMAT,
+				ADXL345_DATA_FORMAT_FULL_RES)))
 		return dev_err_probe(dev, ret, "Failed to set data format\n");
 
 	// 3. Enable measurement

@@ -12,6 +12,7 @@
 #include <linux/module.h>
 #include <linux/of.h>
 #include <linux/of_device.h>
+#include <linux/regmap.h>
 #include <linux/slab.h>
 #include <linux/spi/spi.h>
 
@@ -33,7 +34,7 @@
 #define ADXL345_REG_DATAX0 0x32
 #define ADXL345_REG_DATAY0 0x34
 #define ADXL345_REG_DATAZ0 0x36
-#define ADXL345_REG_DATA_AXIS(index)                                           \
+#define ADXL345_REG_DATA_AXIS(index) \
 	(ADXL345_REG_DATAX0 + (index) * sizeof(__le16))
 
 #define ADXL345_BW_RATE GENMASK(3, 0)
@@ -58,6 +59,7 @@ struct adxl_device {
 	struct cdev cdev;
 	struct spi_device *spidev;
 	struct device *device;
+	struct regmap *regmap;
 	int sample_rate;
 	int measurement_range;
 	int x, y, z;

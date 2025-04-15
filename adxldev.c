@@ -143,5 +143,5 @@ module_exit(adxl_exit);
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Ali Nasrolahi <A.Nasrolahi01@gmail.com>");
-MODULE_DESCRIPTION("");
-MODULE_VERSION("0.1");
+MODULE_DESCRIPTION("ADXL345 Accelerometer SPI driver");
+MODULE_VERSION("0.2");
