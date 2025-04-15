@@ -1,5 +1,5 @@
 obj-m += adxl.o
-adxl-objs := adxldev.o adxl-core.o
+adxl-objs := adxldev.o adxl-core.o adxl-fops.o adxl-sysfs.o
 
 #CFLAGS_EXTRA += -DDEBUG
 #KERNEL_SRC = $(KERNELDIR)

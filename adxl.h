@@ -63,6 +63,9 @@ struct adxl_device {
 	int x, y, z;
 };
 
+int adxl345_sysfs_init(struct adxl_device *);
+int adxl345_sysfs_deinit(struct adxl_device *);
+
 int adxl345_probe(struct adxl_device *adxl);
 int adxl345_update_axis(struct adxl_device *adxl);
 int adxl345_read_x(struct adxl_device *adxl);
