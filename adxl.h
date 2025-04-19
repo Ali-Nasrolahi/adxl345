@@ -8,6 +8,7 @@
 #include <linux/cdev.h>
 #include <linux/delay.h>
 #include <linux/fs.h>
+#include <linux/interrupt.h>
 #include <linux/ioctl.h>
 #include <linux/module.h>
 #include <linux/of.h>
@@ -36,6 +37,7 @@
 #define ADXL345_REG_DATAZ0 0x36
 #define ADXL345_REG_DATA_AXIS(index) \
 	(ADXL345_REG_DATAX0 + (index) * sizeof(__le16))
+#define ADXL345_REG_INT_ENABLE 0x2E
 
 #define ADXL345_BW_RATE GENMASK(3, 0)
 
@@ -55,11 +57,23 @@
 
 #define ADXL345_DEVID 0xE5
 
+#define ADXL345_INT_OVERRUN BIT(0)
+#define ADXL345_INT_WATERMARK BIT(1)
+#define ADXL345_INT_FREE_FALL BIT(2)
+#define ADXL345_INT_INACTIVITY BIT(3)
+#define ADXL345_INT_ACTIVITY BIT(4)
+#define ADXL345_INT_DOUBLE_TAP BIT(5)
+#define ADXL345_INT_SINGLE_TAP BIT(6)
+#define ADXL345_INT_DATA_READY BIT(7)
+
+// #define ENABLE_INTERRUPT
+
 struct adxl_device {
 	struct cdev cdev;
 	struct spi_device *spidev;
 	struct device *device;
 	struct regmap *regmap;
+	int irq;
 	int sample_rate;
 	int measurement_range;
 	int x, y, z;

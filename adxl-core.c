@@ -6,6 +6,14 @@ static const struct regmap_config regmap_spi_config = {
 	.read_flag_mask = (BIT(7) | BIT(6)), /* Enable multi-byte read */
 };
 
+#ifdef ENABLE_INTERRUPT
+static irqreturn_t adxl345_irq_handler(int irq, void *p)
+{
+	struct adxl_device *adxl = p;
+	return IRQ_HANDLED;
+}
+#endif
+
 int adxl345_enable(struct adxl_device *adxl)
 {
 	return regmap_write(adxl->regmap, ADXL345_REG_POWER_CTL,
@@ -143,6 +151,29 @@ int adxl345_probe(struct adxl_device *adxl)
 	dev_info(dev,
 		 "Separate read axes are x: %d, y: %d, z: %d during probe\n",
 		 adxl->x, adxl->y, adxl->z);
+
+#ifdef ENABLE_INTERRUPT
+	adxl->irq = fwnode_irq_get_byname(dev_fwnode(dev), "INT1");
+	if (adxl->irq) {
+		dev_info(dev, "Trying to enable IRQ on line %d!\n", adxl->irq);
+		ret = devm_request_threaded_irq(dev, adxl->irq, NULL,
+						adxl345_irq_handler,
+						IRQF_SHARED | IRQF_ONESHOT,
+						"adxl345 interrupt line", adxl);
+
+		if (!ret)
+			dev_info(dev, "IRQ enabled on line %d!\n", adxl->irq);
+		else
+			return dev_err_probe(dev, ret,
+					     "IRQ cannot be enabled!\n");
+	}
+
+	if ((ret = regmap_write(adxl->regmap, ADXL345_REG_INT_ENABLE,
+				ADXL345_INT_DATA_READY)))
+		return dev_err_probe(
+			dev, ret,
+			"Failed to enable interrupt for data ready\n");
+#endif
 
 	return 0;
 }
